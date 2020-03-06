@@ -60,6 +60,7 @@ func Execute() {
 	rootCmd.AddCommand(ProtecodeExecuteScanCommand())
 	rootCmd.AddCommand(MavenExecuteCommand())
 	rootCmd.AddCommand(MavenExecuteStaticCodeChecksCommand())
+	rootCmd.AddCommand(NexusUploadCommand())
 
 	addRootFlags(rootCmd)
 	if err := rootCmd.Execute(); err != nil {
