@@ -2,6 +2,7 @@ package maven
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"strings"
 
@@ -35,14 +36,15 @@ func Execute(options *ExecuteOptions, command mavenExecRunner) (string, error) {
 	command.Stdout(stdOut)
 	command.Stderr(log.Entry().Writer())
 
-	parameters := getParametersFromOptions(options, &http.Client{})
-
-	err := command.RunExecutable(mavenExecutable, parameters...)
+	parameters, err := getParametersFromOptions(options, &http.Client{})
 	if err != nil {
-		log.Entry().
-			WithError(err).
-			WithField("command", append([]string{mavenExecutable}, parameters...)).
-			Fatal("failed to execute run command")
+		return "", fmt.Errorf("failed to construct parameters from options: %w", err)
+	}
+
+	err = command.RunExecutable(mavenExecutable, parameters...)
+	if err != nil {
+		commandLine := append([]string{mavenExecutable}, parameters...)
+		return "", fmt.Errorf("failed to run executable, command: '%s', error: %w", commandLine, err)
 	}
 
 	if stdOutBuf == nil {
@@ -63,13 +65,16 @@ func evaluateStdOut(config *ExecuteOptions) (*bytes.Buffer, io.Writer) {
 	return stdOutBuf, stdOut
 }
 
-func getParametersFromOptions(options *ExecuteOptions, client http.Downloader) []string {
+func getParametersFromOptions(options *ExecuteOptions, client http.Downloader) ([]string, error) {
 	var parameters []string
 
 	if options.GlobalSettingsFile != "" {
 		globalSettingsFileName := options.GlobalSettingsFile
 		if strings.HasPrefix(options.GlobalSettingsFile, "http:") || strings.HasPrefix(options.GlobalSettingsFile, "https:") {
-			downloadSettingsFromURL(options.ProjectSettingsFile, "globalSettings.xml", client)
+			err := downloadSettingsFromURL(options.ProjectSettingsFile, "globalSettings.xml", client)
+			if err != nil {
+				return nil, err
+			}
 			globalSettingsFileName = "globalSettings.xml"
 		}
 		parameters = append(parameters, "--global-settings", globalSettingsFileName)
@@ -78,7 +83,10 @@ func getParametersFromOptions(options *ExecuteOptions, client http.Downloader) [
 	if options.ProjectSettingsFile != "" {
 		projectSettingsFileName := options.ProjectSettingsFile
 		if strings.HasPrefix(options.ProjectSettingsFile, "http:") || strings.HasPrefix(options.ProjectSettingsFile, "https:") {
-			downloadSettingsFromURL(options.ProjectSettingsFile, "projectSettings.xml", client)
+			err := downloadSettingsFromURL(options.ProjectSettingsFile, "projectSettings.xml", client)
+			if err != nil {
+				return nil, err
+			}
 			projectSettingsFileName = "projectSettings.xml"
 		}
 		parameters = append(parameters, "--settings", projectSettingsFileName)
@@ -107,15 +115,17 @@ func getParametersFromOptions(options *ExecuteOptions, client http.Downloader) [
 	}
 
 	parameters = append(parameters, options.Goals...)
-	return parameters
+	return parameters, nil
 }
 
 // ToDo replace with pkg/maven/settings GetSettingsFile
-func downloadSettingsFromURL(url, filename string, client http.Downloader) {
+func downloadSettingsFromURL(url, filename string, client http.Downloader) error {
 	err := client.DownloadFile(url, filename, nil, nil)
 	if err != nil {
-		log.Entry().WithError(err).Fatal("Failed to download maven settings from: " + url)
+		return fmt.Errorf("failed to download maven settings from URL '%s' to file '%s': %w",
+			url, filename, err)
 	}
+	return nil
 }
 
 func GetTestModulesExcludes() []string {
