@@ -6,21 +6,21 @@ import org.jenkinsci.plugins.workflow.steps.FlowInterruptedException
 
 class Telemetry implements Serializable{
 
-    protected static Telemetry instance
+    protected static Telemetry telemetrys
 
     protected List listenerList = []
 
     protected Telemetry(){}
 
     protected static Telemetry getInstance(){
-        if(!instance) {
-            instance = new Telemetry()
+        if(!telemetrys) {
+            telemetrys = new Telemetry()
 
             registerListener({ steps, payload ->
                 piperOsDefaultReporting(steps, payload)
             })
         }
-        return instance
+        return telemetrys
     }
 
     static void registerListener(Closure listener){
