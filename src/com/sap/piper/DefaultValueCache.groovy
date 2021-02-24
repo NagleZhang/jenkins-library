@@ -2,7 +2,7 @@ package com.sap.piper
 
 @API
 class DefaultValueCache implements Serializable {
-    private static DefaultValueCache valuecache
+    private static DefaultValueCache valuecache = new DefaultValueCache()
 
     private Map defaultValues
 
