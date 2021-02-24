@@ -14,12 +14,12 @@ class InfluxData implements Serializable{
     public Map getFields(){ return fields }
     public Map getTags(){ return tags }
 
-    protected static InfluxData instance
+    protected static InfluxData influxInstance
 
     @NonCPS
     public static InfluxData getInstance(){
-        if(!instance) instance = new InfluxData()
-        return instance
+        if(!influxInstance) influxInstance = new InfluxData()
+        return influxInstance
     }
 
     public static void addField(String measurement, String key, def value) {
@@ -36,7 +36,7 @@ class InfluxData implements Serializable{
     }
 
     public static void reset(){
-        instance = null
+        influxInstance = null
     }
 
     public static void readFromDisk(script) {

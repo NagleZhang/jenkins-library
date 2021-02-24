@@ -2,7 +2,7 @@ package com.sap.piper
 
 @API
 class DefaultValueCache implements Serializable {
-    private static DefaultValueCache instance
+    private static DefaultValueCache valuecache
 
     private Map defaultValues
 
@@ -16,11 +16,13 @@ class DefaultValueCache implements Serializable {
     }
 
     static getInstance(){
-        return instance
+        if (valuecache != null) {
+            return valuecache
+        }
     }
 
     static createInstance(Map defaultValues, List customDefaults = []){
-        instance = new DefaultValueCache(defaultValues, customDefaults)
+        valuecache = new DefaultValueCache(defaultValues, customDefaults)
     }
 
     Map getDefaultValues(){
@@ -28,7 +30,7 @@ class DefaultValueCache implements Serializable {
     }
 
     static reset(){
-        instance = null
+        valuecache = null
     }
 
     List getCustomDefaults() {
