@@ -71,12 +71,14 @@ class ReportAggregator {
         securityScans.add(quality.toString())
     }
 
+    /*
     def reportNpmSecurityScan(auditedAdvisories) {
         instance.reportVulnerabilityScanExecution(QualityCheck.NpmAudit)
         if (auditedAdvisories) {
             npmAuditedAdvisories.addAll(auditedAdvisories)
         }
     }
+     */
 
     def reportResilienceCheck() {
         reportQualityCheck(QualityCheck.ResilienceCheck)
